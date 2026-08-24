@@ -14,15 +14,35 @@ public class QuizTrigger : MonoBehaviour
     }
 
     void Update()
+    
     {
         if (playerInside)
         {
-            quizPrompt.SetActive(true);
+            // ถ้า Quiz ยังไม่เปิด ให้แสดงข้อความ "กด E"
+            if (!quizPanel.activeSelf)
+            {
+                quizPrompt.SetActive(true);
+            }
+            else
+            {
+                // ถ้า Quiz เปิดอยู่ ให้ซ่อนข้อความ "กด E"
+                quizPrompt.SetActive(false);
+            }
 
+            // กด E
             if (Input.GetKeyDown(KeyCode.E))
             {
-                quizPrompt.SetActive(false);
-                quizPanel.SetActive(true);
+                // ถ้า Quiz เปิดอยู่ → ปิด Quiz
+                if (quizPanel.activeSelf)
+                {
+                    quizPanel.SetActive(false);
+                }
+                // ถ้า Quiz ปิดอยู่ → เปิด Quiz
+                else
+                {
+                    quizPrompt.SetActive(false);
+                    quizPanel.SetActive(true);
+                }
             }
         }
         else
