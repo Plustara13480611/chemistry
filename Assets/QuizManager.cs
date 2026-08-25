@@ -1,3 +1,4 @@
+
 using System.Collections;
 using UnityEngine;
 using TMPro;
@@ -6,6 +7,10 @@ using UnityEngine.SceneManagement;
 
 public class QuizManager : MonoBehaviour
 {
+    // =========================
+    // คำถามและผลลัพธ์
+    // =========================
+
     public TMP_Text questionText;
     public TMP_Text resultText;
 
@@ -14,12 +19,14 @@ public class QuizManager : MonoBehaviour
     public Button answerButton3;
     public Button answerButton4;
 
+
     // =========================
-    // Stage Complete UI
+    // UI
     // =========================
 
     public GameObject quizPanel;
     public GameObject stageCompletePanel;
+    public GameObject demoEndPanel;
 
     public TMP_Text stageTitleText;
     public TMP_Text stageScoreText;
@@ -27,12 +34,24 @@ public class QuizManager : MonoBehaviour
     public Button continueButton;
     public Button retryButton;
 
-    // ชื่อ Scene ของ Stage 2
+    // ปุ่มกลับ Main Menu ในหน้า Demo End
+    public Button returnToMainMenuButton;
+
+
+    // =========================
+    // เลือก Stage
+    // =========================
+
+    // Scene 1 = false
+    // Scene 2 = true
+    public bool isStage2 = false;
+
+    // Scene ถัดไปของ Stage 1
     public string nextSceneName = "scene2";
 
 
     // =========================
-    // คำถาม
+    // คำถาม Stage 1
     // =========================
 
     string[] questions =
@@ -43,10 +62,6 @@ public class QuizManager : MonoBehaviour
         "สมการใดดุลถูกต้อง?"
     };
 
-
-    // =========================
-    // คำตอบ A B C D
-    // =========================
 
     string[,] answers =
     {
@@ -80,15 +95,66 @@ public class QuizManager : MonoBehaviour
     };
 
 
-    // =========================
-    // คำตอบที่ถูก
-    // 0 = A
-    // 1 = B
-    // 2 = C
-    // 3 = D
-    // =========================
+    // A = 0
+    // B = 1
+    // C = 2
+    // D = 3
 
     int[] correctAnswers = { 1, 2, 0, 1 };
+
+
+    // =========================
+    // คำถาม Stage 2
+    // สารละลายและกรด-เบส
+    // =========================
+
+    string[] stage2Questions =
+    {
+        "ในน้ำเกลือ น้ำทำหน้าที่เป็นอะไร?",
+        "สารที่มีค่า pH น้อยกว่า 7 โดยทั่วไปจัดเป็นสารประเภทใด?",
+        "สารที่มีค่า pH เท่ากับ 7 โดยทั่วไปมีสมบัติอย่างไร?",
+        "ข้อใดเป็นตัวอย่างของสารที่มีสมบัติเป็นกรด?"
+    };
+
+
+    string[,] stage2Answers =
+    {
+        {
+            "ตัวถูกละลาย",
+            "ตัวทำละลาย",
+            "ตัวเร่งปฏิกิริยา",
+            "ผลิตภัณฑ์"
+        },
+
+        {
+            "กรด",
+            "เบส",
+            "กลาง",
+            "เกลือเท่านั้น"
+        },
+
+        {
+            "เป็นกรดแก่",
+            "เป็นเบสแก่",
+            "เป็นกลาง",
+            "เป็นโลหะ"
+        },
+
+        {
+            "น้ำสบู่",
+            "น้ำมะนาว",
+            "น้ำปูนใส",
+            "สารละลาย NaOH"
+        }
+    };
+
+
+    // ข้อ 1 = B
+    // ข้อ 2 = A
+    // ข้อ 3 = C
+    // ข้อ 4 = B
+
+    int[] stage2CorrectAnswers = { 1, 0, 2, 1 };
 
 
     // =========================
@@ -98,7 +164,6 @@ public class QuizManager : MonoBehaviour
     int currentQuestion = 0;
     int score = 0;
 
-    // ป้องกันการกดคำตอบซ้ำ
     bool answered = false;
 
 
@@ -110,32 +175,53 @@ public class QuizManager : MonoBehaviour
     {
         Debug.Log("QUIZ MANAGER START แล้ว!");
 
-        // ซ่อน Stage Complete ตอนเริ่ม
+        // ถ้าเป็น Stage 2
+        // เปลี่ยนไปใช้ชุดคำถาม Stage 2
+        if (isStage2)
+        {
+            questions = stage2Questions;
+            answers = stage2Answers;
+            correctAnswers = stage2CorrectAnswers;
+        }
+
+
+        // ซ่อน Stage Complete
         if (stageCompletePanel != null)
         {
             stageCompletePanel.SetActive(false);
         }
 
-        // เปิด Quiz
-        if (quizPanel != null)
+
+        // ซ่อน Demo End
+        if (demoEndPanel != null)
         {
-            quizPanel.SetActive(true);
+            demoEndPanel.SetActive(false);
         }
 
-        // =========================
+
         // เชื่อมปุ่มคำตอบ
-        // =========================
+        if (answerButton1 != null)
+        {
+            answerButton1.onClick.AddListener(() => CheckAnswer(0));
+        }
 
-        answerButton1.onClick.AddListener(() => CheckAnswer(0));
-        answerButton2.onClick.AddListener(() => CheckAnswer(1));
-        answerButton3.onClick.AddListener(() => CheckAnswer(2));
-        answerButton4.onClick.AddListener(() => CheckAnswer(3));
+        if (answerButton2 != null)
+        {
+            answerButton2.onClick.AddListener(() => CheckAnswer(1));
+        }
+
+        if (answerButton3 != null)
+        {
+            answerButton3.onClick.AddListener(() => CheckAnswer(2));
+        }
+
+        if (answerButton4 != null)
+        {
+            answerButton4.onClick.AddListener(() => CheckAnswer(3));
+        }
 
 
-        // =========================
         // เชื่อมปุ่ม Stage Complete
-        // =========================
-
         if (continueButton != null)
         {
             continueButton.onClick.AddListener(GoToNextStage);
@@ -147,10 +233,14 @@ public class QuizManager : MonoBehaviour
         }
 
 
-        // =========================
-        // เริ่มคำถามข้อแรก
-        // =========================
+        // เชื่อมปุ่มกลับ Main Menu
+        if (returnToMainMenuButton != null)
+        {
+            returnToMainMenuButton.onClick.AddListener(ReturnToMainMenu);
+        }
 
+
+        // เตรียมคำถามข้อแรก
         ShowQuestion();
     }
 
@@ -163,16 +253,9 @@ public class QuizManager : MonoBehaviour
     {
         answered = false;
 
-        // เปิดปุ่มคำตอบ
         SetAnswerButtonsInteractable(true);
 
-        // แสดงคำถาม
         questionText.text = questions[currentQuestion];
-
-
-        // =========================
-        // แสดงคำตอบ
-        // =========================
 
         answerButton1.GetComponentInChildren<TMP_Text>().text =
             answers[currentQuestion, 0];
@@ -186,8 +269,6 @@ public class QuizManager : MonoBehaviour
         answerButton4.GetComponentInChildren<TMP_Text>().text =
             answers[currentQuestion, 3];
 
-
-        // ล้างข้อความผลลัพธ์
         resultText.text = "";
 
         Debug.Log(
@@ -203,7 +284,6 @@ public class QuizManager : MonoBehaviour
 
     void CheckAnswer(int answer)
     {
-        // กันกดซ้ำ
         if (answered)
         {
             return;
@@ -211,9 +291,7 @@ public class QuizManager : MonoBehaviour
 
         answered = true;
 
-        // ปิดปุ่มคำตอบทันที
         SetAnswerButtonsInteractable(false);
-
 
         Debug.Log(
             "ตอบข้อ " +
@@ -223,10 +301,7 @@ public class QuizManager : MonoBehaviour
         );
 
 
-        // =========================
         // ตอบถูก
-        // =========================
-
         if (answer == correctAnswers[currentQuestion])
         {
             score++;
@@ -240,35 +315,24 @@ public class QuizManager : MonoBehaviour
         }
 
 
-        // =========================
         // ตอบผิด
-        // =========================
-
         else
         {
-            // หาคำตอบที่ถูก
             int correctAnswer =
                 correctAnswers[currentQuestion];
 
-
-            // แปลงเลข 0,1,2,3 เป็น A,B,C,D
             string correctLetter =
                 ((char)('A' + correctAnswer)).ToString();
 
-
-            // ดึงข้อความของคำตอบที่ถูก
             string correctText =
                 answers[currentQuestion, correctAnswer];
 
-
-            // แสดงเฉลย
             resultText.text =
                 "ตอบผิด!\n" +
                 "เฉลย: " +
                 correctLetter +
                 ") " +
                 correctText;
-
 
             Debug.Log(
                 "ตอบผิด! " +
@@ -281,12 +345,6 @@ public class QuizManager : MonoBehaviour
             );
         }
 
-
-        // =========================
-        // ไม่ว่าจะถูกหรือผิด
-        // ไปข้อถัดไปเหมือนกัน
-        // =========================
-
         StartCoroutine(NextQuestionAfterDelay());
     }
 
@@ -297,27 +355,14 @@ public class QuizManager : MonoBehaviour
 
     IEnumerator NextQuestionAfterDelay()
     {
-        // ให้เวลาอ่านผล/เฉลย
         yield return new WaitForSeconds(1.5f);
 
-
         currentQuestion++;
-
-
-        // =========================
-        // ยังมีคำถามเหลือ
-        // =========================
 
         if (currentQuestion < questions.Length)
         {
             ShowQuestion();
         }
-
-
-        // =========================
-        // ทำครบทุกข้อแล้ว
-        // =========================
-
         else
         {
             ShowStageComplete();
@@ -332,58 +377,53 @@ public class QuizManager : MonoBehaviour
     void ShowStageComplete()
     {
         Debug.Log(
-            "🔥🔥🔥 SHOW STAGE COMPLETE เริ่มทำงาน!"
+            "SHOW STAGE COMPLETE เริ่มทำงาน!"
         );
 
 
-        // =========================
         // ซ่อน Quiz
-        // =========================
-
         if (quizPanel != null)
         {
             quizPanel.SetActive(false);
         }
 
 
-        // =========================
         // เปิด Stage Complete
-        // =========================
-
         if (stageCompletePanel != null)
         {
             stageCompletePanel.SetActive(true);
 
-            // เอา Stage Complete ขึ้นด้านบนสุด
             stageCompletePanel.transform.SetAsLastSibling();
 
             Debug.Log(
-                "🔥 StageCompletePanel เปิดแล้ว!"
+                "StageCompletePanel เปิดแล้ว!"
             );
         }
         else
         {
             Debug.LogError(
-                "❌ stageCompletePanel เป็น NULL!"
+                "stageCompletePanel เป็น NULL!"
             );
         }
 
 
-        // =========================
         // ชื่อ Stage
-        // =========================
-
         if (stageTitleText != null)
         {
-            stageTitleText.text =
-                "STAGE 1 COMPLETE!";
+            if (isStage2)
+            {
+                stageTitleText.text =
+                    "STAGE 2 COMPLETE!";
+            }
+            else
+            {
+                stageTitleText.text =
+                    "STAGE 1 COMPLETE!";
+            }
         }
 
 
-        // =========================
         // คะแนน
-        // =========================
-
         if (stageScoreText != null)
         {
             stageScoreText.text =
@@ -401,14 +441,14 @@ public class QuizManager : MonoBehaviour
         if (score >= 2)
         {
             Debug.Log(
-                "🎉 ผ่านด่าน! คะแนน: " +
+                "ผ่านด่าน! คะแนน: " +
                 score +
                 "/" +
                 questions.Length
             );
 
 
-            // แสดงปุ่มไปต่อ
+            // เปิดปุ่มไปต่อ
             if (continueButton != null)
             {
                 continueButton.gameObject.SetActive(true);
@@ -430,7 +470,7 @@ public class QuizManager : MonoBehaviour
         else
         {
             Debug.Log(
-                "❌ ไม่ผ่าน! คะแนน: " +
+                "ไม่ผ่าน! คะแนน: " +
                 score +
                 "/" +
                 questions.Length
@@ -454,70 +494,113 @@ public class QuizManager : MonoBehaviour
 
 
     // =========================
-    // ทำควิซใหม่
+    // ทำ Quiz ใหม่
     // =========================
 
     void RetryQuiz()
     {
         Debug.Log(
-            "🔄 เริ่มควิซใหม่!"
+            "เริ่มควิซใหม่!"
         );
 
-
-        // รีเซ็ตคะแนน
         score = 0;
 
-
-        // กลับไปข้อแรก
         currentQuestion = 0;
 
-
-        // รีเซ็ตสถานะ
         answered = false;
 
 
-        // =========================
         // ซ่อน Stage Complete
-        // =========================
-
         if (stageCompletePanel != null)
         {
             stageCompletePanel.SetActive(false);
         }
 
 
-        // =========================
         // เปิด Quiz
-        // =========================
-
         if (quizPanel != null)
         {
             quizPanel.SetActive(true);
         }
 
 
-        // =========================
         // แสดงข้อแรก
-        // =========================
-
         ShowQuestion();
     }
 
 
     // =========================
-    // ไป Stage 2
+    // ไป Stage ถัดไป / Demo End
     // =========================
 
     void GoToNextStage()
     {
-        Debug.Log(
-            "🚀 กำลังไป Stage 2..."
-        );
+        // =========================
+        // ถ้าเป็น Stage 2
+        // ให้เปิด Demo End
+        // =========================
 
+        if (isStage2)
+        {
+            Debug.Log("DEMO END");
+
+            // ปิด Quiz
+            if (quizPanel != null)
+            {
+                quizPanel.SetActive(false);
+            }
+
+            // ปิด Stage Complete
+            if (stageCompletePanel != null)
+            {
+                stageCompletePanel.SetActive(false);
+            }
+
+            // เปิด Demo End
+            if (demoEndPanel != null)
+            {
+                demoEndPanel.SetActive(true);
+
+                demoEndPanel.transform.SetAsLastSibling();
+
+                Debug.Log("DemoEndPanel เปิดแล้ว!");
+            }
+            else
+            {
+                Debug.LogError(
+                    "demoEndPanel เป็น NULL! " +
+                    "อย่าลืมลาก DemoEndPanel ใส่ช่อง Demo End Panel ใน Inspector"
+                );
+            }
+
+            return;
+        }
+
+
+        // =========================
+        // ถ้าเป็น Stage 1
+        // ไป Scene 2
+        // =========================
+
+        Debug.Log(
+            "กำลังไป Stage 2..."
+        );
 
         SceneManager.LoadScene(
             nextSceneName
         );
+    }
+
+
+    // =========================
+    // กลับ Main Menu
+    // =========================
+
+    public void ReturnToMainMenu()
+    {
+        Debug.Log("กำลังกลับ Main Menu...");
+
+        SceneManager.LoadScene("mainmenu");
     }
 
 
@@ -535,3 +618,4 @@ public class QuizManager : MonoBehaviour
         answerButton4.interactable = value;
     }
 }
+
